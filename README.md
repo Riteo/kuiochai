@@ -1,6 +1,6 @@
 # Kuiochai, a maybe too simple automatic file updater.
 
-# Introduction
+## Introduction
 
 Kuiochai is an as sturdy and simple as possible automatic file updater written
 entirely in POSIX shell, with a big emphasis on portability.
@@ -28,7 +28,7 @@ Kuiochai's under the Unlicense, meaning that it's fully into the public domain.
 That means that you can do whatever you like for any purpose without any
 attribution required. For more information read the `UNLICENSE` file.
 
-# Quick start for the impatient
+## Quick start for the impatient
 
 1. Find a repository for sources and file definitions.
 
@@ -44,7 +44,7 @@ file definition directories respectively.
 That's it.
 
 
-# Update system
+## Update system
 
 Kuiochai uses a very, *very* simple update system. It's divided in files, file
 definitions and file sources.
@@ -69,7 +69,7 @@ as: `<version> [URL]`. The URL is technically optional, although only a
 simple warning will be thrown when missing.
 
 
-# Enviroment variables
+## Enviroment variables
 
 KUIOCHAI_SOURCE_PATH: A list of paths separated by `:`. Each of them will be
 checked for a source when asked by a file definition in their original order.
