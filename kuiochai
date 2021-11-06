@@ -1,0 +1,117 @@
+#!/bin/sh
+
+# Kuiochai - A maybe too simple automatic file updater.
+
+# This is free and unencumbered software released into the public domain.
+#
+# Anyone is free to copy, modify, publish, use, compile, sell, or
+# distribute this software, either in source code form or as a compiled
+# binary, for any purpose, commercial or non-commercial, and by any
+# means.
+#
+# In jurisdictions that recognize copyright laws, the author or authors
+# of this software dedicate any and all copyright interest in the
+# software to the public domain. We make this dedication for the benefit
+# of the public at large and to the detriment of our heirs and
+# successors. We intend this dedication to be an overt act of
+# relinquishment in perpetuity of all present and future rights to this
+# software under copyright law.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+#
+# For more information, please refer to <http://unlicense.org/>
+
+info() { printf -- "-> %s\n" "$1"; }
+warn() { printf "!! %s\n" "$1"; }
+debug() { [ "$KUIOCHAI_DEBUG" = 1 ] && printf "{} %s\n" "$1"; }
+
+if [ "$1" = "" ]; then
+	info "Usage: $(basename "$0") <file>"
+	info "Read the manual for further information."
+	exit 1
+fi
+
+for file in "$@"; do
+	! [ -f "$file" ] && warn "File \"$file\" not found." && continue
+
+	if ! printf "%s\n" "$file" | grep -E -q '^[^-.]+-[^-]+$'; then
+		warn "$file: invalid name format!"
+		continue
+	fi
+
+	file_dir="$(dirname -- "$file")"
+	file_basename="$(basename -- "$file")"
+	debug "Processing \"$file_basename\"..."
+
+	# File name parsing.
+	IFS="-." read -r filedef_name version extension <<-eof
+		$file_basename
+		eof
+
+debug "Filedef name: \"$filedef_name\""
+	debug "File version: \"$version\""
+	debug "File extension: \"$extension\""
+
+	# File definition lookup through KUIOCHAI_FILEDEF_PATH.
+	for path in $(IFS=":"; printf "%s " "$KUIOCHAI_FILEDEF_PATH"); do
+		filedef="$path/$filedef_name"
+		debug "Looking for \"$filedef\"..."
+
+		! [ -f "$filedef" ] && filedef= && break
+	done
+
+	if ! [ "$filedef" ]; then
+		warn "$file: file definition not found."
+		continue
+	fi
+
+	debug "Parsing file definition..."
+
+	# File definition parsing.
+	IFS="+" read -r source_name source_arguments < "$filedef"
+
+	debug "Source name: \"$source_name\""
+	debug "Source arguments: \"$source_arguments\""
+
+	# Source lookup through KUIOCHAI_SOURCE_PATH.
+	for path in $(IFS=":"; printf "%s " "$KUIOCHAI_SOURCE_PATH"); do
+		filesrc="$path/$source_name"
+
+		debug "Looking for \"$filesrc\"..."
+
+		! [ -f "$filesrc" ] && filesrc= && continue
+	done
+
+	if ! [ "$filesrc" ]; then
+		warn "$file: source \"$source_name\" not found."
+		continue
+	fi
+
+	read -r remote_version remote_file <<-eof
+		$("$filesrc" "$source_arguments")
+		eof
+
+	# Version escaping for portability.
+	# Any character that isn't alphanumeric will be escaped to an underscore.
+	escaped_remote_version="$(
+		printf "%s" "$remote_version" | tr -c '[:alnum:]' '_')"
+
+	if ! [ "$version" = "$escaped_remote_version" ]; then
+		if ! [ "$remote_file" ]; then
+			warning "$file: manual update needed to \"$remote_version\"."
+			continue
+		fi
+
+		out_file="$file_dir/$filedef_name-$escaped_remote_version"
+		[ "$extension" ] && out_file="$out_file.$extension"
+
+		info "Updating \"$filedef_name\" to \"$remote_version\"..."
+		curl -o "$out_file" -Lf# -- "$remote_file" && rm "$file"
+	fi
+done
