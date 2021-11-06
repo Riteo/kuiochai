@@ -1,4 +1,4 @@
-# Kuiochai, a maybe too simple automatic file updater.
+# Kuiochai, a maybe too simple automatic file updater
 
 ## Introduction
 
