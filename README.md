@@ -8,7 +8,7 @@ entirely in POSIX shell, with a big emphasis on portability.
 It isn't meant to be a complete package manager, instead aiming for something
 that will update single files with the least amount of work possible. As such,
 it has been designed with an extremely simple, yet relatively modular design.
-Its only hard dependency is a POSIX compliant system and cURL.
+Its only hard dependencies are a POSIX compliant system and cURL.
 
 It tries to be reasonably modular by separating its version fetching logic into
 *file sources*, simple executables which, given some arguments, spit out the
@@ -19,7 +19,7 @@ one-line files with a very simple syntax.
 
 The files' name contain their own version using a very strict scheme.
 Their version also escapes any special character to an underscore to avoid
-separator collisions and file systeem incompatibilities.
+separator collisions and file system incompatibilities.
 
 Both file definitions and file sources directories can be specified with the
 `KUIOCHAI_FILEDEF_PATH` and `KUIOCHAI_REPO_PATH` enviroment variables.
