@@ -104,7 +104,7 @@ debug "Filedef name: \"$filedef_name\""
 
 	if ! [ "$version" = "$escaped_remote_version" ]; then
 		if ! [ "$remote_file" ]; then
-			warning "$file: manual update needed to \"$remote_version\"."
+			warn "$file: manual update needed to \"$remote_version\"."
 			continue
 		fi
 
